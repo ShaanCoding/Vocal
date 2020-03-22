@@ -16,6 +16,9 @@ namespace Vocal_CLI
 {
     class YoutubeAPI
     {
+        public static string RTMPURL = "";
+        public static string YtPrivateKey = "";
+
         private YouTubeService service;
 
         //BTW you have to enable live streaming on your YT account, it takes up to 24 hours, to enable this this isn't via API its through you're account.
@@ -93,10 +96,10 @@ namespace Vocal_CLI
             Console.WriteLine(
                     "  - Scheduled End Time: " + returnedBroadCast.Snippet.ScheduledEndTime);
 
-            //This isn't the broadcasting notification but the actual streams name
+            //Creation of Stream Key & description
             var streamSnippet = new LiveStreamSnippet();
-            streamSnippet.Title = "Test - Stream";
-            streamSnippet.Description = "A test of the youtube API - Stream";
+            streamSnippet.Title = "Vocal - Youtube Bot Key";
+            streamSnippet.Description = "Youtube API Auto-Generated Key.";
 
             //Codex settings
             var codexSettings = new CdnSettings();
@@ -124,6 +127,8 @@ namespace Vocal_CLI
 
             /* INFO */
             //returnedStream.Cdn.IngestionInfo.IngestionAddress stream to this HTML or RMPT
+            RTMPURL = returnedStream.Cdn.IngestionInfo.IngestionAddress;
+            YtPrivateKey = returnedStream.Cdn.IngestionInfo.StreamName;
 
 
             //Executes live broadcast by binding the livestream and broadcast together and submitting it
@@ -139,16 +144,21 @@ namespace Vocal_CLI
             var liveStreamRequest = service.LiveStreams.List("id,status");
             liveStreamRequest.Id = returnedStream.Id;
 
-            /*
-            //Repeats until A is sent it continously searches for livestream for stream status
-            string streamLoop = "0";
-            while (!streamLoop.Contains("A"))
+
+            //Repeats until A is sent it continously searches for livestream for stream status to see if it is ready to get streamed to
+            string broadCastLoop = "";
+            while (broadCastLoop != "ready")
             {
+                Thread.Sleep(5000); //temp replace with multithreading safe
                 var returnedStreamListResponse = liveStreamRequest.Execute();
                 var foundStream = returnedStreamListResponse.Items.Single();
-                Console.WriteLine(foundStream.Status.StreamStatus);
-                streamLoop = Console.ReadKey().Key.ToString();
+                broadCastLoop = foundStream.Status.StreamStatus;
             }
+
+            //USEAEHUAEUAHHUDAHUDAHUSD
+
+            Thread ffMPEGThread = new Thread(FFMPEGStream.Temp);
+            ffMPEGThread.Start();
 
             //when streamstatus is good it disables monitoring of stream and you update the streams content details
             returnedBroadCast.ContentDetails.MonitorStream.EnableMonitorStream = false;
@@ -157,45 +167,42 @@ namespace Vocal_CLI
             liveBroadcastRequest.Id = returnedBroadCast.Id;
 
 
-            //broadcastloop until disables monitoring of stream and id is updated
-            char broadcastLoop = '0';
-            while (broadcastLoop != ('A'))
+            //broadcastloop until disables monitoring of stream
+            broadCastLoop = "";
+            while (broadCastLoop != "True")
             {
-
+                Thread.Sleep(5000);
                 var returnedBroadcastListResponse = liveBroadcastRequest.Execute();
                 var foundBroadcast = returnedBroadcastListResponse.Items.Single();
-                Console.WriteLine(foundBroadcast.ContentDetails.MonitorStream.EnableMonitorStream);
-                broadcastLoop = Console.ReadKey().KeyChar;
+                broadCastLoop = foundBroadcast.ContentDetails.MonitorStream.EnableMonitorStream.ToString();
             }
 
-            //transitions from testing to full
+            //After broadcast is good we now request to change to Testing status of broadcast
             service.LiveBroadcasts.Transition(LiveBroadcastsResource.TransitionRequest.BroadcastStatusEnum.Testing, returnedBroadCast.Id, "");
 
-            //waits until lifecycle status changes then exits loop
-            broadcastLoop = '0';
-            while (broadcastLoop != 'A')
+            broadCastLoop = "";
+            while (broadCastLoop != "ready")
             {
-
+                Thread.Sleep(5000);
                 var returnedBroadcastListResponse = liveBroadcastRequest.Execute();
                 var foundBroadcast = returnedBroadcastListResponse.Items.Single();
-                Console.WriteLine(foundBroadcast.Status.LifeCycleStatus);
-                broadcastLoop = Console.ReadKey().KeyChar;
+                broadCastLoop = foundBroadcast.Status.LifeCycleStatus;
             }
 
-            //transition request
+            
+            //Once we're able to successfully enter testing we should then be able to enter live mode so lets go
             service.LiveBroadcasts.Transition(LiveBroadcastsResource.TransitionRequest.BroadcastStatusEnum.Live, returnedBroadCast.Id, "");
 
             //waits for broadcast status to change again
-            broadcastLoop = '0';
-            while (broadcastLoop != ('A'))
+            broadCastLoop = "";
+            while (broadCastLoop != "ready")
             {
 
                 var returnedBroadcastListResponse = liveBroadcastRequest.Execute();
                 var foundBroadcast = returnedBroadcastListResponse.Items.Single();
-                Console.WriteLine(foundBroadcast.Status.LifeCycleStatus);
-                broadcastLoop = Console.ReadKey().KeyChar;
+                broadCastLoop = foundBroadcast.Status.LifeCycleStatus;
             }
-            */
+            Console.WriteLine("\nExited Youtube API Loops");
         }
     }
 }
