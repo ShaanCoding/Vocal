@@ -18,10 +18,11 @@ namespace Vocal_CLI
     {
         static void Main(string[] args)
         {
-            YoutubeAPI youtubeAPI = new YoutubeAPI(); //so far so good gets ID & creates broadcasting session need to:
+            //YoutubeAPI youtubeAPI = new YoutubeAPI(); //so far so good gets ID & creates broadcasting session need to:
             //Generate image stream for RSTP to stream
             //Find way to stream to RSTP
-
+            Thread ffMPEGThread = new Thread(FFMPEGStream.Temp);
+            ffMPEGThread.Start();
             //
 
 

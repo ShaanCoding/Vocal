@@ -202,6 +202,8 @@ namespace Vocal_CLI
                 var foundBroadcast = returnedBroadcastListResponse.Items.Single();
                 broadCastLoop = foundBroadcast.Status.LifeCycleStatus;
             }
+
+
             Console.WriteLine("\nExited Youtube API Loops");
         }
     }

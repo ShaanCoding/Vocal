@@ -26,21 +26,27 @@ namespace Vocal_CLI
             string outputOverlay = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\johnOverlay.mp4";
             //CombineAudioVideo(video, audio, output);
             //OverlayImageVideo(image, output, outputOverlay);
-            RTSPStream(RTMPURL, YtPrivateKey, outputOverlay);
+            //RTSPStream(RTMPURL, YtPrivateKey, outputOverlay);
+            AudioVideoOverlayed(image, video, audio, outputOverlay);
         }
 
-        private void CombineAudioVideo(string video, string audio, string output)
+        private static void CombineAudioVideo(string video, string audio, string output)
         {
-            LaunchCommandLineApp($"-stream_loop -1 -i {video} -i {audio} -shortest -map 0:v:0 -map 1:a:0 -threads 0 -y {output}");
+            LaunchCommandLineApp($"-stream_loop -1 -i {video} -i {audio} -shortest -vf scale=1920:1080 -map 0:v:0 -map 1:a:0 -threads 0 -y {output}");
         }
 
-        private void OverlayImageVideo(string image, string video, string output)
+        private static void OverlayImageVideo(string image, string video, string output)
         {
             /*
             The scale2ref scales the first input (to the filter) to the size of the second. The input pad indexes 0, and 1 refer to the first and 2nd input to FFmpeg, as that count begins from zero.
             -map 0:a? - the ? tells FFmpeg to map the audio contingently i.e. if present. I have removed the amix since a) filters within a filter complex can't be contingent and b) there's only one input so there's nothing to 'mix
             */
             LaunchCommandLineApp($"-y -i {video} -i {image} -filter_complex \"[1][0]scale2ref[i][m];[m][i]overlay[v]\" -map \"[v]\" -map 0:a? -ac 2 -threads 0 {output}");
+        }
+
+        private static void AudioVideoOverlayed(string image, string video, string audio, string output)
+        {
+            LaunchCommandLineApp($"-stream_loop -1 -i {video} -i {audio} -i {image} -filter_complex \"[0:v]scale=1280:720[v0:v]; [v0:v][2:v] overlay[videoOutput:v]\" -map [\"videoOutput\":v] -map 1:a:0 -shortest -ac 2 -threads 0 -r 24 -y {output}");
         }
 
         private static void RTSPStream(string RTMPURL, string YtPrivateKey, string input)
@@ -51,7 +57,7 @@ namespace Vocal_CLI
         private static void LaunchCommandLineApp(string input)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.CreateNoWindow = true;
+            startInfo.CreateNoWindow = false;
             startInfo.UseShellExecute = false;
             startInfo.FileName = "ffmpeg.exe";
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;
