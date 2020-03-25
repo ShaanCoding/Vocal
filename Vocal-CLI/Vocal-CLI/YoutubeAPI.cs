@@ -51,7 +51,7 @@ namespace Vocal_CLI
             returnedStream = GenerateAPIKey();
             BindBroadCast();
 
-            Thread ffMPEGThread = new Thread(FFMPEGStream.Temp);
+            Thread ffMPEGThread = new Thread(FFMPEGStream.Start);
             ffMPEGThread.Start();
 
             PrepareStream();
@@ -183,7 +183,6 @@ namespace Vocal_CLI
                 var returnedBroadcastListResponse = liveBroadcastRequest.Execute();
                 var foundBroadcast = returnedBroadcastListResponse.Items.Single();
                 broadCastLoop = foundBroadcast.ContentDetails.MonitorStream.EnableMonitorStream.ToString();
-                Console.WriteLine(broadCastLoop);
             }
 
             //Once we're able to successfully enter testing we should then be able to enter live mode so lets go

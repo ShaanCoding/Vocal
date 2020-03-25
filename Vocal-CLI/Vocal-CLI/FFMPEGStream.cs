@@ -10,26 +10,48 @@ namespace Vocal_CLI
 {
     class FFMPEGStream
     {
+        private const string IMAGE_OVERLAY = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\Overlay.png";
+        private const string VIDEO_SOURCE = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\sample-video.mp4";
+        private const string AUDIO_FOLDER = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Music\";
+
+        private static string RTMPURL = "";
+        private static string YOUTUBE_PRIVATE_KEY = "";
         public FFMPEGStream()
         {
-
+            RTMPURL = Program.RTMPURL;
+            YOUTUBE_PRIVATE_KEY = Program.YtPrivateKey;
         }
 
-        public static void Temp()
+        public static void Start()
         {
-            string RTMPURL = Program.RTMPURL;
-            string YtPrivateKey = Program.YtPrivateKey;
-            string image = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\images.png";
-            string video = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\sample-video.mp4";
-            string audio = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Music\Arkansas_Traveler.mp3";
-            string output = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\john.mp4";
-            string outputOverlay = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\johnOverlay.mp4";
+            string currentSongURL = GetRandomSong();
+            string nextSongURL = GetRandomSong();
 
-            RTSPStream(RTMPURL, YtPrivateKey, outputOverlay);
-            //AudioVideoOverlayed(image, video, audio, outputOverlay);
+
+            for(int i = 0; i < 3; i++)
+            {
+                //END GOAL IS TO STREAM ALL
+                GraphicsGenerator.GenerateImageOverlay(currentSongURL, nextSongURL);
+                AudioVideoOverlayed(IMAGE_OVERLAY, VIDEO_SOURCE, currentSongURL);
+                //RTSPStream(RTMPURL, YOUTUBE_PRIVATE_KEY, outputOverlay);
+
+                //At end we need to bump up the queue
+                currentSongURL = nextSongURL;
+                nextSongURL = GetRandomSong();
+                //DEBUG
+                Console.WriteLine("EXPORTED: SONG");
+            }
         }
 
-        private static void AudioVideoOverlayed(string image, string video, string audio, string output)
+        private static string GetRandomSong()
+        {
+            Random rand = new Random();
+            string[] soundFiles = Directory.GetFiles(AUDIO_FOLDER, "*.mp3");
+            string randomSong = soundFiles[rand.Next(0, soundFiles.Length)];
+            return randomSong;
+        }
+
+        private static void AudioVideoOverlayed(string image, string video, string audio)
         {
             LaunchCommandLineApp($"-stream_loop -1 -i {video} -i {audio} -i {image} -filter_complex \"[0:v]scale=1280:720[v0:v]; [v0:v][2:v] overlay[videoOutput:v]\" -map [\"videoOutput\":v] -map 1:a:0 -shortest -ac 2 -threads 0 -r 24 -y {output}");
         }
