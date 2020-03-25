@@ -32,9 +32,9 @@ namespace Vocal_CLI
                 SONG_NAME = currentSongFile.Tag.Title;
             }
 
-            if(currentSongFile.Tag.Performers.Length > 0)
+            if(currentSongFile.Tag.AlbumArtists.Length > 0)
             {
-                ARTIST_NAME = currentSongFile.Tag.Performers[0];
+                ARTIST_NAME = currentSongFile.Tag.AlbumArtists[0];
             }
 
             Image returnImage;
@@ -49,9 +49,9 @@ namespace Vocal_CLI
                 returnImage = null;
             }
 
-            if (nextSongFile.Tag.Performers.Length > 0)
+            if (nextSongFile.Tag.AlbumArtists.Length > 0)
             {
-                NEXT_SONG_STRING = nextSongFile.Tag.Performers[0] + " - ";
+                NEXT_SONG_STRING = nextSongFile.Tag.AlbumArtists[0] + " - ";
             }
             else
             {

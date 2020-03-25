@@ -32,7 +32,7 @@ namespace Vocal_CLI
             {
                 //END GOAL IS TO STREAM ALL
                 GraphicsGenerator.GenerateImageOverlay(currentSongURL, nextSongURL);
-                AudioVideoOverlayed(IMAGE_OVERLAY, VIDEO_SOURCE, currentSongURL);
+                AudioVideoOverlayed(IMAGE_OVERLAY, VIDEO_SOURCE, currentSongURL, @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\output-" + i + ".mp4");
                 //RTSPStream(RTMPURL, YOUTUBE_PRIVATE_KEY, outputOverlay);
 
                 //At end we need to bump up the queue
@@ -51,7 +51,7 @@ namespace Vocal_CLI
             return randomSong;
         }
 
-        private static void AudioVideoOverlayed(string image, string video, string audio)
+        private static void AudioVideoOverlayed(string image, string video, string audio, string output)
         {
             LaunchCommandLineApp($"-stream_loop -1 -i {video} -i {audio} -i {image} -filter_complex \"[0:v]scale=1280:720[v0:v]; [v0:v][2:v] overlay[videoOutput:v]\" -map [\"videoOutput\":v] -map 1:a:0 -shortest -ac 2 -threads 0 -r 24 -y {output}");
         }
