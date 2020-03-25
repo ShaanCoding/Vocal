@@ -16,10 +16,9 @@ namespace Vocal_CLI
 {
     class YoutubeAPI
     {
-        public static string RTMPURL = "";
-        public static string YtPrivateKey = "";
-
         private YouTubeService service;
+        private LiveBroadcast returnedBroadCast;
+        private LiveStream returnedStream;
 
         //BTW you have to enable live streaming on your YT account, it takes up to 24 hours, to enable this this isn't via API its through you're account.
         private YouTubeService OAuth()
@@ -48,43 +47,49 @@ namespace Vocal_CLI
         public YoutubeAPI()
         {
             service = OAuth();
+            returnedBroadCast = GenerateBroadCast();
+            returnedStream = GenerateAPIKey();
+            BindBroadCast();
 
+            Thread ffMPEGThread = new Thread(FFMPEGStream.Temp);
+            ffMPEGThread.Start();
+
+            PrepareStream();
+            Console.WriteLine("\nFinished Youtube API Function");
+        }
+
+        public LiveBroadcast GenerateBroadCast()
+        {
             //broadcast snippet contains basic info about the broadcast and this is shown on youtube when launched
-            var broadCastSnippet = new LiveBroadcastSnippet();
+            LiveBroadcastSnippet broadCastSnippet = new LiveBroadcastSnippet();
             broadCastSnippet.Title = "Test";
             broadCastSnippet.Description = "A test of the youtube data API";
             //TODO: Add a thumbnail icon
             broadCastSnippet.ScheduledStartTime = DateTime.Now;
 
             //Applies settings of made for kids and unlisted to snippet i.e broadcast settings
-            var broadCastStatus = new LiveBroadcastStatus();
+            LiveBroadcastStatus broadCastStatus = new LiveBroadcastStatus();
             broadCastStatus.SelfDeclaredMadeForKids = false;
             broadCastStatus.PrivacyStatus = "unlisted";
 
             //enables the broadcast to view a different "special stream" in case of time delays etc good for debugging
-            var broadCastMonitorStream = new MonitorStreamInfo();
+            MonitorStreamInfo broadCastMonitorStream = new MonitorStreamInfo();
             broadCastMonitorStream.EnableMonitorStream = true;
 
             //contains info about the monitor stream
-            var broadCastContentDetails = new LiveBroadcastContentDetails();
+            LiveBroadcastContentDetails broadCastContentDetails = new LiveBroadcastContentDetails();
             broadCastContentDetails.MonitorStream = broadCastMonitorStream;
-            //Probs unnessary
-            //broadCastContentDetails.ClosedCaptionsType = "closedCaptionsDisabled";
-            //broadCastContentDetails.EnableAutoStart = true;
-            //broadCastContentDetails.EnableClosedCaptions = false;
-            //broadCastContentDetails.StereoLayout;
 
-
-            var broadCast = new LiveBroadcast();
-            //broadCast.Kind = "youtube#liveBroadcast"; //Uncessary
+            LiveBroadcast broadCast = new LiveBroadcast();
             broadCast.Snippet = broadCastSnippet; //binds the info regarding stream
             broadCast.Status = broadCastStatus; //privacy settings & reg settings
             broadCast.ContentDetails = broadCastContentDetails; //binds monitor info
 
             //Allows to finalise the setting up and is ready to be transmitted
-            var liveBroadCastInsert = service.LiveBroadcasts.Insert(broadCast, "snippet,status,contentDetails");
+            LiveBroadcastsResource.InsertRequest liveBroadCastInsert = service.LiveBroadcasts.Insert(broadCast, "snippet,status,contentDetails");
             //Reads the returned var
-            var returnedBroadCast = liveBroadCastInsert.Execute();
+
+            LiveBroadcast returnedBroadCast = liveBroadCastInsert.Execute();
 
             Console.WriteLine("\n================== Returned Broadcast ==================\n");
             Console.WriteLine("  - Id: " + returnedBroadCast.Id);
@@ -96,26 +101,30 @@ namespace Vocal_CLI
             Console.WriteLine(
                     "  - Scheduled End Time: " + returnedBroadCast.Snippet.ScheduledEndTime);
 
+            return returnedBroadCast;
+        }
+
+        public LiveStream GenerateAPIKey()
+        {
             //Creation of Stream Key & description
-            var streamSnippet = new LiveStreamSnippet();
+            LiveStreamSnippet streamSnippet = new LiveStreamSnippet();
             streamSnippet.Title = "Vocal - Youtube Bot Key";
             streamSnippet.Description = "Youtube API Auto-Generated Key.";
 
             //Codex settings
-            var codexSettings = new CdnSettings();
+            CdnSettings codexSettings = new CdnSettings();
             codexSettings.Format = "720p";
             codexSettings.IngestionType = "rtmp";
 
             //Actual live stream binding
-            var stream = new LiveStream();
-            stream.Kind = "youtube#liveStream"; //should be unnecessary
+            LiveStream stream = new LiveStream();
             stream.Snippet = streamSnippet; //Binds the title
             stream.Cdn = codexSettings; //Binds codex
 
             //Finalising of settings same as broadcasting
-            var liveStreamInsert = service.LiveStreams.Insert(stream, "snippet,cdn");
+            LiveStreamsResource.InsertRequest liveStreamInsert = service.LiveStreams.Insert(stream, "snippet,cdn");
             //returned stream
-            var returnedStream = liveStreamInsert.Execute();
+            LiveStream returnedStream = liveStreamInsert.Execute();
 
             Console.WriteLine("\n================== Returned Stream ==================\n");
             Console.WriteLine("  - Id: " + returnedStream.Id);
@@ -125,12 +134,14 @@ namespace Vocal_CLI
             Console.WriteLine("  - URL: " + returnedStream.Cdn.IngestionInfo.IngestionAddress);
             Console.WriteLine("  - Name: " + returnedStream.Cdn.IngestionInfo.StreamName);
 
-            /* INFO */
-            //returnedStream.Cdn.IngestionInfo.IngestionAddress stream to this HTML or RMPT
-            RTMPURL = returnedStream.Cdn.IngestionInfo.IngestionAddress;
-            YtPrivateKey = returnedStream.Cdn.IngestionInfo.StreamName;
+            Program.RTMPURL = returnedStream.Cdn.IngestionInfo.IngestionAddress;
+            Program.YtPrivateKey = returnedStream.Cdn.IngestionInfo.StreamName;
 
+            return returnedStream;
+        }
 
+        public void BindBroadCast()
+        {
             //Executes live broadcast by binding the livestream and broadcast together and submitting it
             var liveBroadcastBind = service.LiveBroadcasts.Bind(returnedBroadCast.Id, "id, contentDetails");
             liveBroadcastBind.StreamId = returnedStream.Id;
@@ -139,33 +150,30 @@ namespace Vocal_CLI
             Console.WriteLine("\n================== Returned Bound Broadcast ==================\n");
             Console.WriteLine("  - Broadcast Id: " + returnedBroadCast.Id);
             Console.WriteLine("  - Bound Stream Id: " + returnedBroadCast.ContentDetails.BoundStreamId);
+        }
 
+        public void PrepareStream()
+        {
             //recieves returned info id
             var liveStreamRequest = service.LiveStreams.List("id,status");
             liveStreamRequest.Id = returnedStream.Id;
 
 
-            //Repeats until A is sent it continously searches for livestream for stream status to see if it is ready to get streamed to
+            //Repeats until ready is sent. Continously searches for livestream for stream status to see if it is ready to get streamed to
             string broadCastLoop = "";
             while (broadCastLoop != "ready")
             {
-                Thread.Sleep(5000); //temp replace with multithreading safe
+                Thread.Sleep(5000);
                 var returnedStreamListResponse = liveStreamRequest.Execute();
                 var foundStream = returnedStreamListResponse.Items.Single();
                 broadCastLoop = foundStream.Status.StreamStatus;
             }
 
-            //USEAEHUAEUAHHUDAHUDAHUSD
-
-            Thread ffMPEGThread = new Thread(FFMPEGStream.Temp);
-            ffMPEGThread.Start();
-
-            //when streamstatus is good it disables monitoring of stream and you update the streams content details
+            //When stream is ready to be streamed we disable monitorstream
             returnedBroadCast.ContentDetails.MonitorStream.EnableMonitorStream = false;
             service.LiveBroadcasts.Update(returnedBroadCast, "contentDetails");
             var liveBroadcastRequest = service.LiveBroadcasts.List("id,status,contentDetails");
             liveBroadcastRequest.Id = returnedBroadCast.Id;
-
 
             //broadcastloop until disables monitoring of stream
             broadCastLoop = "";
@@ -175,21 +183,9 @@ namespace Vocal_CLI
                 var returnedBroadcastListResponse = liveBroadcastRequest.Execute();
                 var foundBroadcast = returnedBroadcastListResponse.Items.Single();
                 broadCastLoop = foundBroadcast.ContentDetails.MonitorStream.EnableMonitorStream.ToString();
+                Console.WriteLine(broadCastLoop);
             }
 
-            //After broadcast is good we now request to change to Testing status of broadcast
-            service.LiveBroadcasts.Transition(LiveBroadcastsResource.TransitionRequest.BroadcastStatusEnum.Testing, returnedBroadCast.Id, "");
-
-            broadCastLoop = "";
-            while (broadCastLoop != "ready")
-            {
-                Thread.Sleep(5000);
-                var returnedBroadcastListResponse = liveBroadcastRequest.Execute();
-                var foundBroadcast = returnedBroadcastListResponse.Items.Single();
-                broadCastLoop = foundBroadcast.Status.LifeCycleStatus;
-            }
-
-            
             //Once we're able to successfully enter testing we should then be able to enter live mode so lets go
             service.LiveBroadcasts.Transition(LiveBroadcastsResource.TransitionRequest.BroadcastStatusEnum.Live, returnedBroadCast.Id, "");
 
@@ -203,8 +199,6 @@ namespace Vocal_CLI
                 broadCastLoop = foundBroadcast.Status.LifeCycleStatus;
             }
 
-
-            Console.WriteLine("\nExited Youtube API Loops");
         }
     }
 }

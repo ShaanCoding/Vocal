@@ -17,31 +17,16 @@ namespace Vocal_CLI
 
         public static void Temp()
         {
-            string RTMPURL = YoutubeAPI.RTMPURL;
-            string YtPrivateKey = YoutubeAPI.YtPrivateKey;
+            string RTMPURL = Program.RTMPURL;
+            string YtPrivateKey = Program.YtPrivateKey;
             string image = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\images.png";
             string video = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\sample-video.mp4";
-            string audio = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Music\lmao.mp3";
+            string audio = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Music\Arkansas_Traveler.mp3";
             string output = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\john.mp4";
             string outputOverlay = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\johnOverlay.mp4";
-            //CombineAudioVideo(video, audio, output);
-            //OverlayImageVideo(image, output, outputOverlay);
-            //RTSPStream(RTMPURL, YtPrivateKey, outputOverlay);
-            AudioVideoOverlayed(image, video, audio, outputOverlay);
-        }
 
-        private static void CombineAudioVideo(string video, string audio, string output)
-        {
-            LaunchCommandLineApp($"-stream_loop -1 -i {video} -i {audio} -shortest -vf scale=1920:1080 -map 0:v:0 -map 1:a:0 -threads 0 -y {output}");
-        }
-
-        private static void OverlayImageVideo(string image, string video, string output)
-        {
-            /*
-            The scale2ref scales the first input (to the filter) to the size of the second. The input pad indexes 0, and 1 refer to the first and 2nd input to FFmpeg, as that count begins from zero.
-            -map 0:a? - the ? tells FFmpeg to map the audio contingently i.e. if present. I have removed the amix since a) filters within a filter complex can't be contingent and b) there's only one input so there's nothing to 'mix
-            */
-            LaunchCommandLineApp($"-y -i {video} -i {image} -filter_complex \"[1][0]scale2ref[i][m];[m][i]overlay[v]\" -map \"[v]\" -map 0:a? -ac 2 -threads 0 {output}");
+            RTSPStream(RTMPURL, YtPrivateKey, outputOverlay);
+            //AudioVideoOverlayed(image, video, audio, outputOverlay);
         }
 
         private static void AudioVideoOverlayed(string image, string video, string audio, string output)
@@ -57,7 +42,7 @@ namespace Vocal_CLI
         private static void LaunchCommandLineApp(string input)
         {
             ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.CreateNoWindow = false;
+            startInfo.CreateNoWindow = true;
             startInfo.UseShellExecute = false;
             startInfo.FileName = "ffmpeg.exe";
             startInfo.WindowStyle = ProcessWindowStyle.Hidden;

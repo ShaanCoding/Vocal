@@ -16,15 +16,19 @@ namespace Vocal_CLI
 {
     class Program
     {
+        public static string RTMPURL = "";
+        public static string YtPrivateKey = "";
         static void Main(string[] args)
         {
-            //YoutubeAPI youtubeAPI = new YoutubeAPI(); //so far so good gets ID & creates broadcasting session need to:
+            YoutubeAPI youtubeAPI = new YoutubeAPI(); //so far so good gets ID & creates broadcasting session need to:
             //Generate image stream for RSTP to stream
             //Find way to stream to RSTP
-            Thread ffMPEGThread = new Thread(FFMPEGStream.Temp);
-            ffMPEGThread.Start();
-            //
 
+
+            //
+            ///GraphicsGenerator graphicsGen = new GraphicsGenerator();
+            //graphicsGen.GenerateImageOverlay();
+            //graphicsGen.GetMP3Info(@"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Music\Arkansas_Traveler.mp3");
 
             Console.ReadLine();
         }
