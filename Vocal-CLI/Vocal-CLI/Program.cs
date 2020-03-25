@@ -20,14 +20,14 @@ namespace Vocal_CLI
         public static string YtPrivateKey = "";
         static void Main(string[] args)
         {
-            YoutubeAPI youtubeAPI = new YoutubeAPI(); //so far so good gets ID & creates broadcasting session need to:
+            //YoutubeAPI youtubeAPI = new YoutubeAPI(); //so far so good gets ID & creates broadcasting session need to:
             //Generate image stream for RSTP to stream
             //Find way to stream to RSTP
 
 
             //
-            ///GraphicsGenerator graphicsGen = new GraphicsGenerator();
-            //graphicsGen.GenerateImageOverlay();
+            GraphicsGenerator graphicsGen = new GraphicsGenerator();
+            graphicsGen.GenerateImageOverlay(@"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Music\01 - THEME.mp3", @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Music\Arkansas_Traveler.mp3");
             //graphicsGen.GetMP3Info(@"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Music\Arkansas_Traveler.mp3");
 
             Console.ReadLine();

@@ -3,38 +3,74 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Windows.Media.Imaging;
 using TagLib;
 
 namespace Vocal_CLI
 {
     class GraphicsGenerator
     {
-        //Generate graphics image 128 * 720 p
-        //Must have the album icon if not a default one
-        //Must have music data info read from meta data
-        string ALBUM_COVER = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\ALBUM_COVER.jpg";
-        string SONG_NAME = "SONG NAME";
-        string ARTIST_NAME = "ARTIST NAME";
-        string NEXT_SONG_NAME = "NEXT SONG ARTIST - NEXT SONG NAME";
+        private const string BACKUP_ALBUM_COVER = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\ALBUM_COVER.jpg";
+        private const string SEEK_ICON = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\nextSong.png";
+        private const string OUTPUT_FILE = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\Overlay.png";
 
-        public GraphicsGenerator()
+        public static void GenerateImageOverlay(string currentSong, string nextSong)
         {
+            string SONG_NAME = "SONG NAME";
+            string ARTIST_NAME = "ARTIST NAME";
+            string NEXT_SONG_STRING = "";
 
+            TagLib.File currentSongFile = TagLib.File.Create(currentSong);
+            TagLib.File nextSongFile = TagLib.File.Create(nextSong);
+
+            if(currentSongFile.Tag.Title != null)
+            {
+                SONG_NAME = currentSongFile.Tag.Title;
+            }
+
+            if(currentSongFile.Tag.Performers.Length > 0)
+            {
+                ARTIST_NAME = currentSongFile.Tag.Performers[0];
+            }
+
+            Image returnImage;
+            if(currentSongFile.Tag.Pictures.Length != 0)
+            {
+                TagLib.IPicture albumPicture = currentSongFile.Tag.Pictures[0]; //filepath is audio file location
+                MemoryStream memStream = new MemoryStream(albumPicture.Data.Data); //creates image in memory stream
+                returnImage = Image.FromStream(memStream);
+            }
+            else
+            {
+                returnImage = null;
+            }
+
+            if (nextSongFile.Tag.Performers.Length > 0)
+            {
+                NEXT_SONG_STRING = nextSongFile.Tag.Performers[0] + " - ";
+            }
+            else
+            {
+                NEXT_SONG_STRING = "SONG ARTIST - ";
+            }
+
+            if (nextSongFile.Tag.Title != null)
+            {
+                NEXT_SONG_STRING += nextSongFile.Tag.Title;
+            }
+            else
+            {
+                NEXT_SONG_STRING += "SONG NAME";
+            }
+
+            ImageGenerator(returnImage, SONG_NAME, ARTIST_NAME, NEXT_SONG_STRING);
         }
 
-        public void GetMP3Info(string mp3FileString)
-        {
-            TagLib.File mp3File = TagLib.File.Create(mp3FileString);
-            Console.WriteLine(mp3File.Tag.Title);
-            Console.WriteLine(mp3File.Tag.AlbumArtists[0]);
-            Console.WriteLine(mp3File.Tag.Album);
-        }
-
-        public void GenerateImageOverlay()
+        private static void ImageGenerator(Image albumCover, string songName, string artistName, string nextSongInfo)
         {
             Bitmap outputImage = new Bitmap(1080, 720);
             using (Graphics g = Graphics.FromImage(outputImage))
@@ -43,25 +79,33 @@ namespace Vocal_CLI
                 g.CompositingQuality = CompositingQuality.HighQuality;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
 
-                Image albumCoverImage = Image.FromFile(@"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\ALBUM_COVER.jpg");
-                Image nextSongImage = Image.FromFile(@"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\nextSong.png");
+                Image albumCoverImage;
+                if (albumCover == null)
+                {
+                     albumCoverImage = Image.FromFile(BACKUP_ALBUM_COVER);
+                }
+                else
+                {
+                    albumCoverImage = albumCover;
+                }
+
+                Image nextSongImage = Image.FromFile(SEEK_ICON);
                 Brush whiteBrush = Brushes.White;
                 Brush blackBrush = Brushes.Black;
+
                 g.FillRectangle(whiteBrush, 30, 30, 132, 132);
-                //g.FillRectangle(blackBrush, 32, 32, 128, 128);
                 g.DrawImage(albumCoverImage, 32, 32, 128, 128);
 
                 Font songNameFont = new Font("Arial", 16, FontStyle.Bold);
                 Font songArtistFont = new Font("Arial", 12, FontStyle.Italic);
                 Font nextSongFont = new Font("Arial", 12, FontStyle.Regular);
-                //30 px out
-                //g.DrawString(topText, memeFont, textBrush, new System.Drawing.Rectangle(0, Convert.ToInt32((outputImage.Height / 100) * 5), outputImage.Width - 20, Convert.ToInt32(MeasureString(topText, memeFont, outputImage.Width - 20).Width)), sf);
-                g.DrawString(SONG_NAME, songNameFont, whiteBrush, 192, 60);
-                g.DrawString(ARTIST_NAME, songArtistFont, whiteBrush, 192, 85);
+
+                g.DrawString(songName, songNameFont, whiteBrush, 192, 60);
+                g.DrawString(artistName, songArtistFont, whiteBrush, 192, 85);
                 g.DrawImage(nextSongImage, 192, 115, 20, 20);
-                g.DrawString(NEXT_SONG_NAME, nextSongFont, whiteBrush, 212, 118);
+                g.DrawString(nextSongInfo, nextSongFont, whiteBrush, 212, 118);
             }
-            outputImage.Save(@"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\Johno.png", ImageFormat.Png);
+            outputImage.Save(OUTPUT_FILE, ImageFormat.Png);
         }
     }
 }
