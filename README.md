@@ -10,6 +10,16 @@ The running of this program requires several libaries these include:
 * Newtonsoft.Json
 * TagLIb-Sharp
 
+## How to use
+To run this application you first must obtain a API key json file from the Google developer platform.
+To do this you first must:
+1. Create a project
+2. Activate Youtube.Data.v3 on the project
+3. Create an OAuth Key
+4. From there you will be able to download a json file, place it in Vocal as "client_secret.json"
+
+From there you will be able to just run the application as normal, it will request for you to authenticate and after signing into your google account it will then automatically begin streaming onto your account.
+
 ## Authors
 * **Shaan Khan** - *All Work*
 
