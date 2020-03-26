@@ -23,6 +23,7 @@ namespace Vocal_CLI
         //BTW you have to enable live streaming on your YT account, it takes up to 24 hours, to enable this this isn't via API its through you're account.
         private YouTubeService OAuth()
         {
+            string directoryString = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase)?.Replace("file:\\", "") + "\\" + this.GetType().ToString();
             UserCredential creds;
             using (var stream = new FileStream(AppDomain.CurrentDomain.BaseDirectory + "client_secret.json", FileMode.Open, FileAccess.Read))
             {
@@ -31,7 +32,7 @@ namespace Vocal_CLI
                     new[] { YouTubeService.Scope.Youtube, YouTubeService.Scope.YoutubeUpload },
                     "user",
                     CancellationToken.None,
-                    new FileDataStore(this.GetType().ToString())
+                    new FileDataStore(directoryString, true)
                     ).Result;
             }
 
