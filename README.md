@@ -1,6 +1,6 @@
 # Vocal
 
-This application is a basic lightweight Youtube music streaming bot created in C# with the assistance of FFMPEG. This explores advanced image manipulation, advance API calls require OAuth 2.0, multi-threading, memory and more.
+This application is a basic lightweight Youtube music streaming bot created in C# with the assistance of FFMPEG. This explores advanced image manipulation, advance API calls requiring OAuth 2.0, multi-threading, memory and more.
 
 ## Prerequisites
 The running of this program requires several libaries these include:
