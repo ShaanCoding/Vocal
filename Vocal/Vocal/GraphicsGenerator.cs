@@ -10,9 +10,9 @@ namespace Vocal
 {
     class GraphicsGenerator
     {
-        private const string BACKUP_ALBUM_COVER = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\ALBUM_COVER.jpg";
-        private const string SEEK_ICON = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\nextSong.png";
-        private const string OUTPUT_FILE = @"C:\Users\shaan\Documents\GitHub\Vocal\Release\Test_Assets\Assets\Overlay.png";
+        private static string BACKUP_ALBUM_COVER = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase)?.Replace("file:\\", "") + "\\Assets\\ALBUM_COVER.png";
+        private static string SEEK_ICON = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase)?.Replace("file:\\", "") + "\\Assets\\nextSong.png";
+        private static string OUTPUT_FILE = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase)?.Replace("file:\\", "") + "\\Assets\\Overlay.png";
 
         public static void GenerateImageOverlay(string currentSong, string nextSong)
         {
